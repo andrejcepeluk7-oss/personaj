@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Character Sheet</title>
+<title>Character Sheet Final</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   body {
@@ -88,17 +88,16 @@
 
 <div id="capture-area">
     <div class="avatar-box">
-      <img id="preview" src="https://via.placeholder.com/150/222222/ffffff?text=No+Photo">
+      <!-- Заглушка по умолчанию -->
+      <img id="preview" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
     </div>
 
     <div class="name-row">
-      <!-- ЛЕВАЯ КНОПКА: КАМЕРА -->
       <button class="icon-btn" onclick="document.getElementById('fileInput').click()">📷</button>
       <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)" style="display:none">
       
       <input type="text" id="nameInput" placeholder="Имя героя" oninput="saveData()">
       
-      <!-- ПРАВАЯ КНОПКА: КОРЗИНА -->
       <button class="icon-btn" onclick="resetAll()">🗑️</button>
     </div>
 
@@ -148,7 +147,8 @@ let basePoints = 5;
 let isLocked = false;
 
 window.onload = function() {
-    const saved = localStorage.getItem('dnd_v11_data');
+    // Загрузка данных статов
+    const saved = localStorage.getItem('dnd_v12_data');
     if (saved) {
         const d = JSON.parse(saved);
         counters = d.counters;
@@ -159,14 +159,27 @@ window.onload = function() {
         isLocked = d.isLocked;
         document.getElementById("nameInput").value = d.name || "";
     }
-    const savedImg = localStorage.getItem('dnd_v11_img');
-    if (savedImg) document.getElementById("preview").src = savedImg;
+    
+    // Загрузка фотографии
+    const savedImg = localStorage.getItem('dnd_v12_img');
+    if (savedImg) {
+        document.getElementById("preview").src = savedImg;
+    }
+    
     render();
 };
 
 function saveData() {
-    const data = { counters, lockedCounters, level, lvlPoints, basePoints, isLocked, name: document.getElementById("nameInput").value };
-    localStorage.setItem('dnd_v11_data', JSON.stringify(data));
+    const data = { 
+        counters, 
+        lockedCounters, 
+        level, 
+        lvlPoints, 
+        basePoints, 
+        isLocked, 
+        name: document.getElementById("nameInput").value 
+    };
+    localStorage.setItem('dnd_v12_data', JSON.stringify(data));
 }
 
 function render() {
@@ -187,7 +200,7 @@ function render() {
 
 function lockBase() {
     if (basePoints > 0) return alert("Распределите базовые очки!");
-    if (confirm("Закрепить базу? Дальнейшие изменения только через уровни.")) {
+    if (confirm("Закрепить базу?")) {
         isLocked = true;
         lockedCounters = { ...counters };
         render();
@@ -200,7 +213,7 @@ function changeLevel(val) {
     let oldB = Math.floor(level / 2);
     let newB = Math.floor(newLvl / 2);
     let diff = newB - oldB;
-    if (lvlPoints + diff < 0) return alert("Сначала уменьшите характеристики!");
+    if (lvlPoints + diff < 0) return alert("Недостаточно очков!");
     level = newLvl;
     lvlPoints += diff;
     render();
@@ -242,15 +255,18 @@ function handleSecondary(id, val) {
 function loadImage(event) {
     let reader = new FileReader();
     reader.onload = function() {
-        document.getElementById("preview").src = reader.result;
-        localStorage.setItem('dnd_v11_img', reader.result);
+        const imgData = reader.result;
+        document.getElementById("preview").src = imgData;
+        // Сохраняем фото немедленно
+        localStorage.setItem('dnd_v12_img', imgData);
     };
     if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
 }
 
 function resetAll() {
-    if (confirm("Удалить персонажа и сбросить базу?")) { 
-        localStorage.clear(); 
+    if (confirm("Полный сброс персонажа?")) { 
+        localStorage.removeItem('dnd_v12_data');
+        localStorage.removeItem('dnd_v12_img');
         location.reload(); 
     }
 }
@@ -260,7 +276,7 @@ function downloadSheet() {
     html2canvas(area, { 
         backgroundColor: "#121212",
         useCORS: true,
-        scale: 2 // Улучшенное качество
+        scale: 2 
     }).then(canvas => {
         const link = document.createElement('a');
         link.download = 'character-sheet.png';
