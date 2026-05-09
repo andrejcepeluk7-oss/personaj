@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Персонаж</title>
+
+<style>
+  body {
+    font-family: "Comic Sans MS", cursive;
+    background-color: #1a1a1a;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 6px;
+  }
+
+  /* ===== АВАТАР ===== */
+  .avatar { margin-top: 10px; }
+  #fileInput { display: none; }
+
+  #preview {
+    width: 420px;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 15px;
+    background: #333;
+    display: block;
+    margin: 8px auto;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .img-btn, .clear-btn {
+    width: 45px;
+    height: 38px;
+    font-size: 18px;
+    border: none;
+    border-radius: 12px;
+    background-color: #3a3a3a;
+    color: white;
+    cursor: pointer;
+  }
+
+  .clear-btn { background-color: #4a2b2b; }
+
+  #nameInput {
+    width: 200px;
+    height: 34px;
+    border: none;
+    border-radius: 12px;
+    background-color: #3a3a3a;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+    font-family: "Comic Sans MS", cursive;
+    outline: none;
+  }
+
+  /* ===== КОНТЕЙНЕР СТАТОВ ===== */
+  .container {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 6px 0;
+  }
+
+  .label { width: 110px; text-align: right; font-size: 14px; }
+  .value { width: 35px; font-size: 16px; text-align: center; font-weight: bold; }
+
+  button {
+    width: 40px;
+    height: 34px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    background-color: #3a3a3a;
+    color: white;
+    cursor: pointer;
+  }
+
+  button:active { transform: scale(0.95); }
+  .points { margin: 10px 0; font-size: 16px; color: #aaa; }
+
+  @media (max-width: 480px) {
+    #preview { width: 260px; height: 260px; }
+    .label { width: 90px; font-size: 13px; }
+    #nameInput { width: 170px; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="avatar">
+  <img id="preview" src="" alt="">
+  
+  <div class="controls">
+    <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)">
+    <button class="img-btn" onclick="document.getElementById('fileInput').click()">📷</button>
+    <button class="clear-btn" onclick="resetAll()">🗑️</button>
+  </div>
+
+  <input type="text" id="nameInput" placeholder="Имя персонажа" oninput="saveAll()">
+</div>
+
+<div class="container">
+  <!-- Группа 1: Взаимозависимые -->
+  <div class="row">
+    <div class="label">Сила</div>
+    <button onclick="changeLinked(1, 2, -1)">-</button>
+    <div class="value" id="c1">10</div>
+    <button onclick="changeLinked(1, 2, 1)">+</button>
+  </div>
+
+  <div class="row">
+    <div class="label">Интеллект</div>
+    <button onclick="changeLinked(2, 1, -1)">-</button>
+    <div class="value" id="c2">10</div>
+    <button onclick="changeLinked(2, 1, 1)">+</button>
+  </div>
+
+  <div class="row">
+    <div class="label">Телосложение</div>
+    <button onclick="changeLinked(3, 4, -1)">-</button>
+    <div class="value" id="c3">10</div>
+    <button onclick="changeLinked(3, 4, 1)">+</button>
+  </div>
+
+  <div class="row">
+    <div class="label">Мудрость</div>
+    <button onclick="changeLinked(4, 3, -1)">-</button>
+    <div class="value" id="c4">10</div>
+    <button onclick="changeLinked(4, 3, 1)">+</button>
+  </div>
+
+  <div class="points">Свободные очки: <span id="points">5</span></div>
+
+  <!-- Группа 2: За очки -->
+  <div class="row">
+    <div class="label">Ловкость</div>
+    <button onclick="changeStat(5, -1)">-</button>
+    <div class="value" id="c5">10</div>
+    <button onclick="changeStat(5, 1)">+</button>
+  </div>
+  <div class="row">
+    <div class="label">Харизма</div>
+    <button onclick="changeStat(6, -1)">-</button>
+    <div class="value" id="c6">10</div>
+    <button onclick="changeStat(6, 1)">+</button>
+  </div>
+</div>
+
+<script>
+// Данные по умолчанию
+let counters = { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10 };
+let points = 5;
+
+// ЗАГРУЗКА ПРИ СТАРТЕ
+window.onload = function() {
+    const savedCounters = localStorage.getItem('dnd_counters');
+    const savedPoints = localStorage.getItem('dnd_points');
+    const savedName = localStorage.getItem('dnd_name');
+    const savedImg = localStorage.getItem('dnd_img');
+
+    if (savedCounters) counters = JSON.parse(savedCounters);
+    if (savedPoints) points = parseInt(savedPoints);
+    if (savedName) document.getElementById("nameInput").value = savedName;
+    if (savedImg) document.getElementById("preview").src = savedImg;
+
+    render();
+};
+
+// СОХРАНЕНИЕ
+function saveAll() {
+    localStorage.setItem('dnd_counters', JSON.stringify(counters));
+    localStorage.setItem('dnd_points', points.toString());
+    localStorage.setItem('dnd_name', document.getElementById("nameInput").value);
+}
+
+// ОБНОВЛЕНИЕ ЭКРАНА
+function render() {
+    for (let i = 1; i <= 6; i++) {
+        document.getElementById("c" + i).textContent = counters[i];
+    }
+    document.getElementById("points").textContent = points;
+}
+
+// ЛОГИКА СВЯЗАННЫХ СТАТОВ (Сила-Интеллект и т.д.)
+function changeLinked(id, targetId, val) {
+    if (counters[targetId] - val < 0) return; // Нельзя уменьшать ниже 0
+    counters[id] += val;
+    counters[targetId] -= val;
+    render();
+    saveAll();
+}
+
+// ЛОГИКА СТАТОВ ЗА ОЧКИ (Ловкость, Харизма)
+function changeStat(id, val) {
+    if (val === 1) {
+        if (points <= 0) return;
+        counters[id]++;
+        points--;
+    } else {
+        if (counters[id] <= 1) return;
+        counters[id]--;
+        points++;
+    }
+    render();
+    saveAll();
+}
+
+// КАРТИНКА
+function loadImage(event) {
+    let file = event.target.files[0];
+    let reader = new FileReader();
+    reader.onload = function(){
+        const imgData = reader.result;
+        document.getElementById("preview").src = imgData;
+        localStorage.setItem('dnd_img', imgData);
+    };
+    reader.readAsDataURL(file);
+}
+
+// ПОЛНЫЙ СБРОС
+function resetAll() {
+    if (confirm("Внимание! Это полностью удалит персонажа. Продолжить?")) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+</script>
+
+</body>
+</html>
