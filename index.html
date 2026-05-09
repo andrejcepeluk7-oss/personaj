@@ -3,246 +3,271 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>Персонаж</title>
-
+<title>Character Sheet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   body {
-    font-family: "Comic Sans MS", cursive;
-    background-color: #1a1a1a;
-    color: white;
+    font-family: sans-serif;
+    background-color: #121212;
+    color: #ffffff;
     text-align: center;
     margin: 0;
-    padding: 6px;
+    padding: 10px;
+    user-select: none;
   }
 
-  /* ===== АВАТАР ===== */
-  .avatar { margin-top: 10px; }
-  #fileInput { display: none; }
+  #capture-area {
+    background-color: #121212;
+    padding: 10px;
+    border-radius: 15px;
+  }
 
   #preview {
-    width: 420px;
-    height: 420px;
-    object-fit: cover;
-    border-radius: 15px;
-    background: #333;
-    display: block;
-    margin: 8px auto;
+    width: 140px; height: 140px;
+    object-fit: cover; border-radius: 50%;
+    background: #222; display: block;
+    margin: 0 auto 15px; border: 2px solid #333;
   }
 
-  .controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 10px;
+  .name-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin-bottom: 15px; max-width: 340px; margin: 0 auto 15px;
   }
-
-  .img-btn, .clear-btn {
-    width: 45px;
-    height: 38px;
-    font-size: 18px;
-    border: none;
-    border-radius: 12px;
-    background-color: #3a3a3a;
-    color: white;
-    cursor: pointer;
-  }
-
-  .clear-btn { background-color: #4a2b2b; }
-
+  
   #nameInput {
-    width: 200px;
-    height: 34px;
-    border: none;
-    border-radius: 12px;
-    background-color: #3a3a3a;
-    color: white;
-    text-align: center;
-    font-size: 16px;
-    font-family: "Comic Sans MS", cursive;
-    outline: none;
+    flex-grow: 1; height: 40px; border: 1px solid #333; border-radius: 8px;
+    background: transparent; color: white; text-align: center;
+    font-size: 16px; outline: none;
   }
 
-  /* ===== КОНТЕЙНЕР СТАТОВ ===== */
-  .container {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
+  .icon-btn {
+    width: 44px; height: 44px; border: 1px solid #333;
+    border-radius: 8px; background: #1a1a1a; color: white;
+    font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
 
-  .row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin: 6px 0;
+  .stats-header {
+    display: flex; justify-content: space-between;
+    background: #1a1a1a; padding: 12px; border-radius: 12px;
+    margin-bottom: 15px; border: 1px solid #333;
+    max-width: 340px; margin: 0 auto 15px;
+  }
+  .stat-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+  .stat-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-val { font-size: 18px; font-weight: bold; }
+  
+  .lvl-btns { display: flex; gap: 8px; margin-top: 6px; }
+  .lvl-btns button { width: 32px; height: 28px; background: #222; border: 1px solid #444; border-radius: 4px; color: white; }
+
+  .container { width: 100%; max-width: 340px; margin: 0 auto; }
+  .row { 
+    display: flex; align-items: center; justify-content: space-between; 
+    margin: 8px 0; background: #1a1a1a; padding: 8px 12px; 
+    border-radius: 10px; border: 1px solid #222;
+  }
+  .label { width: 110px; text-align: left; font-size: 14px; }
+  .value { width: 30px; font-size: 18px; font-weight: bold; }
+  
+  .row button {
+    width: 42px; height: 38px; font-size: 20px;
+    border: 1px solid #333; border-radius: 8px; background-color: #222; color: white;
   }
 
-  .label { width: 110px; text-align: right; font-size: 14px; }
-  .value { width: 35px; font-size: 16px; text-align: center; font-weight: bold; }
-
-  button {
-    width: 40px;
-    height: 34px;
-    font-size: 16px;
-    border: none;
-    border-radius: 10px;
-    background-color: #3a3a3a;
-    color: white;
-    cursor: pointer;
+  #fixBtn, #downloadBtn {
+    width: 100%; height: 44px; font-size: 14px; border-radius: 10px; 
+    margin-top: 10px; font-weight: bold; border: none; text-transform: uppercase; cursor: pointer;
   }
 
-  button:active { transform: scale(0.95); }
-  .points { margin: 10px 0; font-size: 16px; color: #aaa; }
+  #fixBtn { background-color: #f0f0f0; color: #000; }
+  #downloadBtn { background-color: #333; color: #fff; border: 1px solid #444; margin-top: 20px; }
 
-  @media (max-width: 480px) {
-    #preview { width: 260px; height: 260px; }
-    .label { width: 90px; font-size: 13px; }
-    #nameInput { width: 170px; }
-  }
+  .locked-notice { font-size: 11px; color: #666; margin-top: 10px; }
 </style>
 </head>
-
 <body>
 
-<div class="avatar">
-  <img id="preview" src="" alt="">
-  
-  <div class="controls">
-    <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)">
-    <button class="img-btn" onclick="document.getElementById('fileInput').click()">📷</button>
-    <button class="clear-btn" onclick="resetAll()">🗑️</button>
-  </div>
+<div id="capture-area">
+    <div class="avatar-box">
+      <img id="preview" src="https://via.placeholder.com/150/222222/ffffff?text=No+Photo">
+    </div>
 
-  <input type="text" id="nameInput" placeholder="Имя персонажа" oninput="saveAll()">
+    <div class="name-row">
+      <!-- ЛЕВАЯ КНОПКА: КАМЕРА -->
+      <button class="icon-btn" onclick="document.getElementById('fileInput').click()">📷</button>
+      <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)" style="display:none">
+      
+      <input type="text" id="nameInput" placeholder="Имя героя" oninput="saveData()">
+      
+      <!-- ПРАВАЯ КНОПКА: КОРЗИНА -->
+      <button class="icon-btn" onclick="resetAll()">🗑️</button>
+    </div>
+
+    <div class="container">
+        <div class="stats-header">
+            <div class="stat-item">
+                <span class="stat-label">LVL</span>
+                <div class="stat-val" id="lvlDisplay">1</div>
+                <div class="lvl-btns">
+                    <button onclick="changeLevel(-1)">-</button>
+                    <button onclick="changeLevel(1)">+</button>
+                </div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Points</span>
+                <div class="stat-val" id="lvlPointsDisplay">0</div>
+            </div>
+            <div id="basePointsSection" class="stat-item">
+                <span class="stat-label">Base</span>
+                <div class="stat-val" id="basePointsDisplay">5</div>
+            </div>
+        </div>
+
+        <div id="stats-list">
+            <div class="row"><div class="label">Сила</div><button onclick="handleStat(1, 2, -1)">-</button><div class="value" id="c1">10</div><button onclick="handleStat(1, 2, 1)">+</button></div>
+            <div class="row"><div class="label">Интеллект</div><button onclick="handleStat(2, 1, -1)">-</button><div class="value" id="c2">10</div><button onclick="handleStat(2, 1, 1)">+</button></div>
+            <div class="row"><div class="label">Телосложение</div><button onclick="handleStat(3, 4, -1)">-</button><div class="value" id="c3">10</div><button onclick="handleStat(3, 4, 1)">+</button></div>
+            <div class="row"><div class="label">Мудрость</div><button onclick="handleStat(4, 3, -1)">-</button><div class="value" id="c4">10</div><button onclick="handleStat(4, 3, 1)">+</button></div>
+            <div class="row"><div class="label">Ловкость</div><button onclick="handleSecondary(5, -1)">-</button><div class="value" id="c5">10</div><button onclick="handleSecondary(5, 1)">+</button></div>
+            <div class="row"><div class="label">Харизма</div><button onclick="handleSecondary(6, -1)">-</button><div class="value" id="c6">10</div><button onclick="handleSecondary(6, 1)">+</button></div>
+        </div>
+    </div>
 </div>
 
 <div class="container">
-  <!-- Группа 1: Взаимозависимые -->
-  <div class="row">
-    <div class="label">Сила</div>
-    <button onclick="changeLinked(1, 2, -1)">-</button>
-    <div class="value" id="c1">10</div>
-    <button onclick="changeLinked(1, 2, 1)">+</button>
-  </div>
-
-  <div class="row">
-    <div class="label">Интеллект</div>
-    <button onclick="changeLinked(2, 1, -1)">-</button>
-    <div class="value" id="c2">10</div>
-    <button onclick="changeLinked(2, 1, 1)">+</button>
-  </div>
-
-  <div class="row">
-    <div class="label">Телосложение</div>
-    <button onclick="changeLinked(3, 4, -1)">-</button>
-    <div class="value" id="c3">10</div>
-    <button onclick="changeLinked(3, 4, 1)">+</button>
-  </div>
-
-  <div class="row">
-    <div class="label">Мудрость</div>
-    <button onclick="changeLinked(4, 3, -1)">-</button>
-    <div class="value" id="c4">10</div>
-    <button onclick="changeLinked(4, 3, 1)">+</button>
-  </div>
-
-  <div class="points">Свободные очки: <span id="points">5</span></div>
-
-  <!-- Группа 2: За очки -->
-  <div class="row">
-    <div class="label">Ловкость</div>
-    <button onclick="changeStat(5, -1)">-</button>
-    <div class="value" id="c5">10</div>
-    <button onclick="changeStat(5, 1)">+</button>
-  </div>
-  <div class="row">
-    <div class="label">Харизма</div>
-    <button onclick="changeStat(6, -1)">-</button>
-    <div class="value" id="c6">10</div>
-    <button onclick="changeStat(6, 1)">+</button>
-  </div>
+    <button id="fixBtn" onclick="lockBase()">Закрепить базу</button>
+    <div id="statusNotice" class="locked-notice"></div>
+    <button id="downloadBtn" onclick="downloadSheet()">💾 Скачать карточку</button>
 </div>
 
 <script>
-// Данные по умолчанию
 let counters = { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10 };
-let points = 5;
+let lockedCounters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+let level = 1;
+let lvlPoints = 0;
+let basePoints = 5;
+let isLocked = false;
 
-// ЗАГРУЗКА ПРИ СТАРТЕ
 window.onload = function() {
-    const savedCounters = localStorage.getItem('dnd_counters');
-    const savedPoints = localStorage.getItem('dnd_points');
-    const savedName = localStorage.getItem('dnd_name');
-    const savedImg = localStorage.getItem('dnd_img');
-
-    if (savedCounters) counters = JSON.parse(savedCounters);
-    if (savedPoints) points = parseInt(savedPoints);
-    if (savedName) document.getElementById("nameInput").value = savedName;
+    const saved = localStorage.getItem('dnd_v11_data');
+    if (saved) {
+        const d = JSON.parse(saved);
+        counters = d.counters;
+        lockedCounters = d.lockedCounters || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+        level = d.level;
+        lvlPoints = d.lvlPoints;
+        basePoints = d.basePoints;
+        isLocked = d.isLocked;
+        document.getElementById("nameInput").value = d.name || "";
+    }
+    const savedImg = localStorage.getItem('dnd_v11_img');
     if (savedImg) document.getElementById("preview").src = savedImg;
-
     render();
 };
 
-// СОХРАНЕНИЕ
-function saveAll() {
-    localStorage.setItem('dnd_counters', JSON.stringify(counters));
-    localStorage.setItem('dnd_points', points.toString());
-    localStorage.setItem('dnd_name', document.getElementById("nameInput").value);
+function saveData() {
+    const data = { counters, lockedCounters, level, lvlPoints, basePoints, isLocked, name: document.getElementById("nameInput").value };
+    localStorage.setItem('dnd_v11_data', JSON.stringify(data));
 }
 
-// ОБНОВЛЕНИЕ ЭКРАНА
 function render() {
-    for (let i = 1; i <= 6; i++) {
-        document.getElementById("c" + i).textContent = counters[i];
-    }
-    document.getElementById("points").textContent = points;
-}
+    for (let i = 1; i <= 6; i++) document.getElementById("c" + i).textContent = counters[i];
+    document.getElementById("lvlDisplay").textContent = level;
+    document.getElementById("lvlPointsDisplay").textContent = lvlPoints;
+    document.getElementById("basePointsDisplay").textContent = basePoints;
 
-// ЛОГИКА СВЯЗАННЫХ СТАТОВ (Сила-Интеллект и т.д.)
-function changeLinked(id, targetId, val) {
-    if (counters[targetId] - val < 0) return; // Нельзя уменьшать ниже 0
-    counters[id] += val;
-    counters[targetId] -= val;
-    render();
-    saveAll();
-}
-
-// ЛОГИКА СТАТОВ ЗА ОЧКИ (Ловкость, Харизма)
-function changeStat(id, val) {
-    if (val === 1) {
-        if (points <= 0) return;
-        counters[id]++;
-        points--;
+    if (isLocked) {
+        document.getElementById("fixBtn").style.display = "none";
+        document.getElementById("basePointsSection").style.visibility = "hidden";
+        document.getElementById("statusNotice").textContent = "База закреплена";
     } else {
-        if (counters[id] <= 1) return;
-        counters[id]--;
-        points++;
+        document.getElementById("statusNotice").textContent = "Этап: Распределение базы";
+    }
+    saveData();
+}
+
+function lockBase() {
+    if (basePoints > 0) return alert("Распределите базовые очки!");
+    if (confirm("Закрепить базу? Дальнейшие изменения только через уровни.")) {
+        isLocked = true;
+        lockedCounters = { ...counters };
+        render();
+    }
+}
+
+function changeLevel(val) {
+    let newLvl = level + val;
+    if (newLvl < 1 || newLvl > 20) return;
+    let oldB = Math.floor(level / 2);
+    let newB = Math.floor(newLvl / 2);
+    let diff = newB - oldB;
+    if (lvlPoints + diff < 0) return alert("Сначала уменьшите характеристики!");
+    level = newLvl;
+    lvlPoints += diff;
+    render();
+}
+
+function handleStat(id, targetId, val) {
+    if (val === 1) {
+        if (lvlPoints > 0) { lvlPoints--; counters[id]++; } 
+        else if (!isLocked && counters[targetId] > 0) { counters[id]++; counters[targetId]--; }
+    } else {
+        if (isLocked) {
+            if (counters[id] > lockedCounters[id]) { counters[id]--; lvlPoints++; }
+        } else {
+            if (counters[id] <= 0) return;
+            if (counters[targetId] < 10) { counters[id]--; counters[targetId]++; }
+            else { counters[id]--; lvlPoints++; }
+        }
     }
     render();
-    saveAll();
 }
 
-// КАРТИНКА
-function loadImage(event) {
-    let file = event.target.files[0];
-    let reader = new FileReader();
-    reader.onload = function(){
-        const imgData = reader.result;
-        document.getElementById("preview").src = imgData;
-        localStorage.setItem('dnd_img', imgData);
-    };
-    reader.readAsDataURL(file);
-}
-
-// ПОЛНЫЙ СБРОС
-function resetAll() {
-    if (confirm("Внимание! Это полностью удалит персонажа. Продолжить?")) {
-        localStorage.clear();
-        location.reload();
+function handleSecondary(id, val) {
+    if (val === 1) {
+        if (lvlPoints > 0) { lvlPoints--; counters[id]++; }
+        else if (!isLocked && basePoints > 0) { basePoints--; counters[id]++; }
+    } else {
+        if (isLocked) {
+            if (counters[id] > lockedCounters[id]) { counters[id]--; lvlPoints++; }
+        } else {
+            if (counters[id] <= 0) return;
+            counters[id]--;
+            if (basePoints < 5) basePoints++;
+            else lvlPoints++;
+        }
     }
+    render();
+}
+
+function loadImage(event) {
+    let reader = new FileReader();
+    reader.onload = function() {
+        document.getElementById("preview").src = reader.result;
+        localStorage.setItem('dnd_v11_img', reader.result);
+    };
+    if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
+}
+
+function resetAll() {
+    if (confirm("Удалить персонажа и сбросить базу?")) { 
+        localStorage.clear(); 
+        location.reload(); 
+    }
+}
+
+function downloadSheet() {
+    const area = document.getElementById('capture-area');
+    html2canvas(area, { 
+        backgroundColor: "#121212",
+        useCORS: true,
+        scale: 2 // Улучшенное качество
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'character-sheet.png';
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
 }
 </script>
-
 </body>
 </html>
