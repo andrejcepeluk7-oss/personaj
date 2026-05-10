@@ -3,17 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Character Sheet Final</title>
+<title>Character Sheet Comic Sans</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   body {
-    font-family: sans-serif;
+    /* УСТАНОВЛЕН ШРИФТ COMIC SANS */
+    font-family: "Comic Sans MS", "Comic Sans", cursive; 
     background-color: #121212;
     color: #ffffff;
     text-align: center;
     margin: 0;
     padding: 10px;
     user-select: none;
+    touch-action: pan-y;
   }
 
   #capture-area {
@@ -35,6 +37,7 @@
   }
   
   #nameInput {
+    font-family: inherit;
     flex-grow: 1; height: 40px; border: 1px solid #333; border-radius: 8px;
     background: transparent; color: white; text-align: center;
     font-size: 16px; outline: none;
@@ -57,7 +60,7 @@
   .stat-val { font-size: 18px; font-weight: bold; }
   
   .lvl-btns { display: flex; gap: 8px; margin-top: 6px; }
-  .lvl-btns button { width: 32px; height: 28px; background: #222; border: 1px solid #444; border-radius: 4px; color: white; }
+  .lvl-btns button { width: 32px; height: 28px; background: #222; border: 1px solid #444; border-radius: 4px; color: white; font-family: inherit; }
 
   .container { width: 100%; max-width: 340px; margin: 0 auto; }
   .row { 
@@ -71,9 +74,30 @@
   .row button {
     width: 42px; height: 38px; font-size: 20px;
     border: 1px solid #333; border-radius: 8px; background-color: #222; color: white;
+    font-family: inherit;
+  }
+
+  .skills-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .skill-select {
+    font-family: inherit;
+    width: 100%;
+    height: 40px;
+    background: #1a1a1a;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 13px;
+    outline: none;
   }
 
   #fixBtn, #downloadBtn {
+    font-family: inherit;
     width: 100%; height: 44px; font-size: 14px; border-radius: 10px; 
     margin-top: 10px; font-weight: bold; border: none; text-transform: uppercase; cursor: pointer;
   }
@@ -88,7 +112,6 @@
 
 <div id="capture-area">
     <div class="avatar-box">
-      <!-- Заглушка по умолчанию -->
       <img id="preview" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
     </div>
 
@@ -129,6 +152,12 @@
             <div class="row"><div class="label">Ловкость</div><button onclick="handleSecondary(5, -1)">-</button><div class="value" id="c5">10</div><button onclick="handleSecondary(5, 1)">+</button></div>
             <div class="row"><div class="label">Харизма</div><button onclick="handleSecondary(6, -1)">-</button><div class="value" id="c6">10</div><button onclick="handleSecondary(6, 1)">+</button></div>
         </div>
+
+        <div class="skills-container">
+            <select id="skill1" class="skill-select" onchange="saveData()"><option value="">Навык 1...</option></select>
+            <select id="skill2" class="skill-select" onchange="saveData()"><option value="">Навык 2...</option></select>
+            <select id="skill3" class="skill-select" onchange="saveData()"><option value="">Навык 3...</option></select>
+        </div>
     </div>
 </div>
 
@@ -139,6 +168,42 @@
 </div>
 
 <script>
+const skillsData = [
+    "Акробатика — баланс и уклонение",
+    "Алхимия — зелья и яды",
+    "Анализ — поиск улик и изучение",
+    "Атлетика — сила и прыжки",
+    "Древковое — копья и алебарды",
+    "Мечи — техника ближнего боя",
+    "Ножи — кинжалы и клинки",
+    "Щиты — блокирование и защита",
+    "Внимательность — слух и детали",
+    "Выживание — охота и природа",
+    "Выступление — музыка и танцы",
+    "Древние языки — чтение мертвых языков",
+    "Запугивание — угрозы и давление",
+    "Знание языков — доп. языки",
+    "История — прошлое и войны",
+    "Каллиграфия — работа с бумагами",
+    "Кузнечное дело — ковка и ремонт",
+    "Кулинария — еда и ингредиенты",
+    "Ловкость рук — кражи и фокусы",
+    "Медицина — помощь и раны",
+    "Морское дело — корабли и навигация",
+    "Обман — ложь и притворство",
+    "Природа — животные и растения",
+    "Проницательность — чтение эмоций",
+    "Религия — боги и нежить",
+    "Рунное дело — символы и печати",
+    "Рыбалка — ловля и вода",
+    "Скрытность — бесшумность",
+    "Стрельба — луки и точность",
+    "Торговля — сделки и оценка",
+    "Травничество — лечебные травы",
+    "Убеждение — дипломатия",
+    "Уход за животными — приручение"
+];
+
 let counters = { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10 };
 let lockedCounters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
 let level = 1;
@@ -147,7 +212,16 @@ let basePoints = 5;
 let isLocked = false;
 
 window.onload = function() {
-    // Загрузка данных статов
+    [1, 2, 3].forEach(num => {
+        const sel = document.getElementById('skill' + num);
+        skillsData.forEach(s => {
+            let opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = s;
+            sel.appendChild(opt);
+        });
+    });
+
     const saved = localStorage.getItem('dnd_v12_data');
     if (saved) {
         const d = JSON.parse(saved);
@@ -158,26 +232,26 @@ window.onload = function() {
         basePoints = d.basePoints;
         isLocked = d.isLocked;
         document.getElementById("nameInput").value = d.name || "";
+        if(d.skills) {
+            document.getElementById('skill1').value = d.skills[0] || "";
+            document.getElementById('skill2').value = d.skills[1] || "";
+            document.getElementById('skill3').value = d.skills[2] || "";
+        }
     }
-    
-    // Загрузка фотографии
     const savedImg = localStorage.getItem('dnd_v12_img');
-    if (savedImg) {
-        document.getElementById("preview").src = savedImg;
-    }
-    
+    if (savedImg) document.getElementById("preview").src = savedImg;
     render();
 };
 
 function saveData() {
     const data = { 
-        counters, 
-        lockedCounters, 
-        level, 
-        lvlPoints, 
-        basePoints, 
-        isLocked, 
-        name: document.getElementById("nameInput").value 
+        counters, lockedCounters, level, lvlPoints, basePoints, isLocked, 
+        name: document.getElementById("nameInput").value,
+        skills: [
+            document.getElementById('skill1').value,
+            document.getElementById('skill2').value,
+            document.getElementById('skill3').value
+        ]
     };
     localStorage.setItem('dnd_v12_data', JSON.stringify(data));
 }
@@ -257,7 +331,6 @@ function loadImage(event) {
     reader.onload = function() {
         const imgData = reader.result;
         document.getElementById("preview").src = imgData;
-        // Сохраняем фото немедленно
         localStorage.setItem('dnd_v12_img', imgData);
     };
     if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
