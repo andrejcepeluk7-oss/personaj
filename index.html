@@ -20,8 +20,8 @@
   .tabs-menu {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    max-width: 340px;
+    gap: 5px;
+    max-width: 360px;
     margin: 0 auto 15px;
   }
   .tab-btn {
@@ -33,7 +33,7 @@
     border: 1px solid #333;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: bold;
   }
   .tab-btn.active {
@@ -107,6 +107,16 @@
   }
   .skill-select:disabled { color: #444; background: #111; border-color: #222; }
 
+  /* Стили для Справки */
+  .info-scroll { max-height: 480px; overflow-y: auto; text-align: left; padding-right: 5px; }
+  .category-title { font-size: 14px; font-weight: bold; margin: 15px 0 8px; padding: 6px 10px; border-radius: 6px; text-transform: uppercase; }
+  .cat-atk { background: #4a0e0e; color: #ff9999; border-left: 4px solid #ff4d4d; }
+  .cat-buf { background: #0e324a; color: #99ccff; border-left: 4px solid #4d94ff; }
+  .cat-deb { background: #320e4a; color: #e199ff; border-left: 4px solid #b34dff; }
+  .info-group { margin-bottom: 8px; background: #1a1a1a; padding: 10px; border-radius: 8px; border: 1px solid #222; }
+  .info-group h4 { margin: 0 0 4px 0; font-size: 14px; color: #fff; }
+  .info-group p { margin: 0; font-size: 12px; color: #bbb; line-height: 1.4; }
+
   #fixBtn, #downloadBtn {
     font-family: inherit; width: 100%; height: 44px; font-size: 14px; border-radius: 10px; 
     margin-top: 10px; font-weight: bold; border: none; text-transform: uppercase; cursor: pointer;
@@ -120,7 +130,9 @@
 
 <div class="tabs-menu">
     <button id="tab1" class="tab-btn active" onclick="switchTab(1)">Персонаж</button>
-    <button id="tab2" class="tab-btn" onclick="switchTab(2)">Навыки</button>
+    <button id="tab2" class="tab-btn" onclick="switchTab(2)">Пассивные</button>
+    <button id="tab3" class="tab-btn" onclick="switchTab(3)">Активные</button>
+    <button id="tab4" class="tab-btn" onclick="switchTab(4)">Справка</button>
 </div>
 
 <div id="capture-area">
@@ -161,7 +173,11 @@
                 <div class="skill-card"><div class="skill-info"><span>Пассивный 2</span><span>Всегда доступен</span></div><select id="p_skill2" class="skill-select" onchange="saveData()"></select></div>
                 <div class="skill-card"><div class="skill-info"><span>Пассивный 3</span><span>Всегда доступен</span></div><select id="p_skill3" class="skill-select" onchange="saveData()"></select></div>
             </div>
+        </div>
+    </div>
 
+    <div id="page3" class="page">
+        <div class="container">
             <div class="section-title">Активные навыки</div>
             <div class="skills-list">
                 <div class="skill-card" id="slot1"><div class="skill-info"><span>Активный 1</span><span id="st1">Доступен</span></div><select id="skill1" class="skill-select" onchange="saveData()"></select></div>
@@ -173,6 +189,13 @@
                 <div class="skill-card" id="slot6"><div class="skill-info"><span>Активный 6</span><span id="st6">6 LVL</span></div><select id="skill6" class="skill-select" onchange="saveData()"></select></div>
                 <div class="skill-card" id="slot7"><div class="skill-info"><span>Активный 7</span><span id="st7">8 LVL</span></div><select id="skill7" class="skill-select" onchange="saveData()"></select></div>
             </div>
+        </div>
+    </div>
+
+    <div id="page4" class="page">
+        <div class="container">
+            <div class="section-title">Описание способностей</div>
+            <div class="info-scroll" id="info-content"></div>
         </div>
     </div>
 </div>
@@ -197,6 +220,50 @@ const activeList = [
     "ХАР+ТЕЛ: Агрессивное нависание (16/16)","ХАР+ТЕЛ: Давящая аура (13/10)","ХАР+ТЕЛ: Воля хищника (14/16)"
 ];
 
+const helpData = {
+    atk: [
+        { t: "Сокрушающее парирование", d: "Силовая контратака, ломающая кости или оружие врага." },
+        { t: "Проламывающая контратака", d: "Ответный удар, игнорирующий любую защиту цели." },
+        { t: "Скользящий выпад", d: "Быстрый удар с одновременным уходом с линии атаки." },
+        { t: "Бешеный таран", d: "Атака с разгона, сбивающая врагов с ног весом тела." },
+        { t: "Продавливающий напор", d: "Агрессивный натиск, заставляющий врага пятиться." },
+        { t: "Обманное движение", d: "Финты и ложные выпады для вскрытия защиты." },
+        { t: "Магический рывок", d: "Стремительное сближение на магической тяге." }
+    ],
+    buf: [
+        { t: "Танец уклонений", d: "Защитная стойка: постоянное маневрирование." },
+        { t: "Равновесный стиль", d: "Универсальный баланс атаки и защиты." },
+        { t: "Нестабильное рунное усиление", d: "Опасное, но мощное усиление урона оружия." },
+        { t: "Стабильный магический клинок", d: "Постоянное магическое насыщение оружия." },
+        { t: "Эфирное вооружение", d: "Создание легкого магического оружия из рун." },
+        { t: "Железная стойка", d: "Иммунитет к отбрасыванию и толчкам." },
+        { t: "Несдвигаемое тело", d: "Максимальная устойчивость против падения." },
+        { t: "Устойчивая опора", d: "Баланс сил для затяжного боя." },
+        { t: "Резкое ускорение", d: "Кратковременный бафф на скорость бега." },
+        { t: "Магическое уклонение", d: "Смена траектории прямо в воздухе." },
+        { t: "Гибкая стойка", d: "Идеальное равновесие при акробатике." },
+        { t: "Баланс движения", d: "Сохранение темпа в изнурительном бою." },
+        { t: "Невозможно сбить с шага", d: "Защита ног от спотыкания при рывках." },
+        { t: "Текучее тело", d: "Плавная защита без потери ритма." }
+    ],
+    deb: [
+        { t: "Жестокое давление", d: "Внушение страха через физическую мощь." },
+        { t: "Подавляющее присутствие", d: "Аура опасности, заставляющая цепенеть." },
+        { t: "Давление голосом", d: "Психологическое подавление воли приказом." },
+        { t: "Аура доминирования", d: "Снижение уверенности врагов вокруг." },
+        { t: "Контроль внимания", d: "Отвлечение врага на его слепые зоны." },
+        { t: "Отвлекающая пластика", d: "Движения, мешающие врагу защищаться." },
+        { t: "Гипнотическая грация", d: "Завораживание, приковывающее взгляды врагов." },
+        { t: "Подчиняющий голос", d: "Прямое магическое подчинение разума речью." },
+        { t: "Магическое убеждение", d: "Усиление слов чарами для веры вам." },
+        { t: "Магическое внушение", d: "Внедрение чужих мыслей в голову врага." },
+        { t: "Агрессивное нависание", d: "Подавление оппонента габаритами." },
+        { t: "Давящая аура", d: "Подсознательная тревога у врагов в радиусе." },
+        { t: "Тяжёлое присутствие", d: "Ментальное сковывание инициативы противников." },
+        { t: "Воля хищника", d: "Панический страх смерти у слабых целей." }
+    ]
+};
+
 let counters = {1:10, 2:10, 3:10, 4:10, 5:10, 6:10}, lockedCounters = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0}, level = 1, lvlPoints = 0, basePoints = 5, isLocked = false, currentTab = 1;
 
 function switchTab(n) {
@@ -208,6 +275,20 @@ function switchTab(n) {
 }
 
 window.onload = () => {
+    // Генерация Справки
+    const info = document.getElementById('info-content');
+    const categories = { atk: '⚔️ Атака', buf: '🛡️ Баффы', deb: '🔮 Дебаффы' };
+    for (let key in helpData) {
+        let h = document.createElement('div'); h.className = `category-title cat-${key}`; h.innerText = categories[key];
+        info.appendChild(h);
+        helpData[key].forEach(s => {
+            let d = document.createElement('div'); d.className = 'info-group';
+            d.innerHTML = `<h4>${s.t}</h4><p>${s.d}</p>`;
+            info.appendChild(d);
+        });
+    }
+
+    // Заполнение выпадающих списков
     const fill = (id, list, text) => {
         let s = document.getElementById(id);
         s.innerHTML = `<option value="">${text}</option>` + list.map(x => `<option value="${x}">${x}</option>`).join('');
@@ -215,13 +296,20 @@ window.onload = () => {
     [1,2,3].forEach(i => fill('p_skill'+i, passiveList, "Выберите пассивный..."));
     [1,2,3,4,5,6,7].forEach(i => fill('skill'+i, activeList, "Выберите активный..."));
 
+    // Загрузка сохраненных данных
     const saved = localStorage.getItem('dnd_v14_data');
     if (saved) {
         const d = JSON.parse(saved);
-        Object.assign(window, d);
+        counters = d.counters || counters;
+        lockedCounters = d.lockedCounters || lockedCounters;
+        level = d.level || level;
+        lvlPoints = d.lvlPoints !== undefined ? d.lvlPoints : lvlPoints;
+        basePoints = d.basePoints !== undefined ? d.basePoints : basePoints;
+        isLocked = d.isLocked || false;
+        
         document.getElementById("nameInput").value = d.name || "";
-        [1,2,3].forEach(i => document.getElementById('p_skill'+i).value = d.ps[i-1] || "");
-        [1,2,3,4,5,6,7].forEach(i => document.getElementById('skill'+i).value = d.as[i-1] || "");
+        [1,2,3].forEach(i => { if(d.ps && d.ps[i-1]) document.getElementById('p_skill'+i).value = d.ps[i-1]; });
+        [1,2,3,4,5,6,7].forEach(i => { if(d.as && d.as[i-1]) document.getElementById('skill'+i).value = d.as[i-1]; });
     }
     const img = localStorage.getItem('dnd_v14_img');
     if (img) document.getElementById("preview").src = img;
@@ -244,9 +332,6 @@ function render() {
     document.getElementById("lvlPointsDisplay").textContent = lvlPoints;
     document.getElementById("basePointsDisplay").textContent = basePoints;
 
-    // Сверхточная проверка уровней для каждого из 7 активных слотов:
-    // Слоты 1, 2, 3: Доступны с 1 уровня (всегда)
-    // Слот 4: со 2 уровня, Слот 5: с 4 уровня, Слот 6: с 6 уровня, Слот 7: с 8 уровня
     const requiredLevels = [1, 1, 1, 2, 4, 6, 8];
 
     [1,2,3,4,5,6,7].forEach(i => {
@@ -267,6 +352,8 @@ function render() {
         document.getElementById("basePointsSection").style.visibility = "hidden";
         document.getElementById("statusNotice").textContent = "База закреплена";
     } else {
+        document.getElementById("fixBtn").style.display = "block";
+        document.getElementById("basePointsSection").style.visibility = "visible";
         document.getElementById("statusNotice").textContent = "Распределение базы";
     }
     saveData();
@@ -302,7 +389,7 @@ function lockBase() { if (basePoints === 0 && confirm("Закрепить баз
 function loadImage(e) { let r = new FileReader(); r.onload = () => { document.getElementById("preview").src = r.result; localStorage.setItem('dnd_v14_img', r.result); }; r.readAsDataURL(e.target.files[0]); }
 function resetAll() { if (confirm("Сбросить всё?")) { localStorage.clear(); location.reload(); } }
 function downloadSheet() {
-    const filename = currentTab === 1 ? 'character.png' : 'skills.png';
+    const filename = (currentTab === 1) ? 'character.png' : (currentTab === 2 ? 'passives.png' : (currentTab === 3 ? 'actives.png' : 'help.png'));
     html2canvas(document.getElementById('capture-area'), { backgroundColor: "#121212", scale: 2 }).then(canvas => {
         const link = document.createElement('a'); link.download = filename; link.href = canvas.toDataURL(); link.click();
     });
