@@ -9,7 +9,7 @@
   body {
     font-family: "Comic Sans MS", "Comic Sans", cursive; 
     background-color: #121212; color: #ffffff; text-align: center; margin: 0; padding: 10px;
-    user-select: none; touch-action: pan-y;
+    user-select: none; -webkit-user-select: none; touch-action: pan-y;
   }
 
   .tabs-menu { display: flex; justify-content: center; gap: 5px; max-width: 360px; margin: 0 auto 15px; }
@@ -23,8 +23,66 @@
   .page { display: none; }
   .page.active { display: block; }
 
+  /* ===== ОБНОВЛЕННЫЙ КОНТЕЙНЕР ФОТО (УВЕЛИЧЕН ДО 200px) ===== */
+  #photo-mask {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: #222;
+    margin: 0 auto 10px;
+    border: 2px solid #333;
+    overflow: hidden;
+    position: relative;
+    touch-action: none; /* Отключаем системный скролл при жестком зуме */
+    transition: border-color 0.3s;
+  }
+  
+  #photo-mask.edit-mode {
+    cursor: grab;
+    border-color: #e67e22; /* Оранжевый цвет показывает режим настройки */
+  }
+  #photo-mask.edit-mode.grabbing {
+    cursor: grabbing;
+  }
+
+  #preview {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+    pointer-events: none; /* Чтобы мышь/тач ловил сам контейнер-маска */
+    width: auto;
+    height: auto;
+  }
+
+  /* Кнопка блокировки фото */
+  .lock-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .lock-photo-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #ccc;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .lock-photo-btn.unlocked {
+    background: #d35400;
+    color: white;
+    border-color: #e67e22;
+  }
+
   /* ПЕРВАЯ СТРАНИЦА (ОРИГИНАЛ) */
-  #preview { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; background: #222; display: block; margin: 0 auto 15px; border: 2px solid #333; }
   .name-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
   #nameInput { font-family: inherit; flex-grow: 1; height: 40px; border: 1px solid #333; border-radius: 8px; background: transparent; color: white; text-align: center; font-size: 16px; outline: none; }
   .icon-btn { width: 44px; height: 44px; border: 1px solid #333; border-radius: 8px; background: #1a1a1a; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -72,9 +130,17 @@
 </div>
 
 <div id="capture-area">
-    <!-- СТР 1 -->
     <div id="page1" class="page active">
-        <img id="preview" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
+        <div id="photo-mask">
+            <img id="preview" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
+        </div>
+
+        <div class="lock-btn-container">
+            <button id="lockPhotoBtn" class="lock-photo-btn" onclick="togglePhotoLock()">
+                <span id="lockPhotoIcon">🔒</span> <span id="lockPhotoText">Фото закреплено</span>
+            </button>
+        </div>
+
         <div class="name-row">
             <button class="icon-btn" onclick="document.getElementById('fileInput').click()">📷</button>
             <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)" style="display:none">
@@ -98,7 +164,6 @@
         </div>
     </div>
 
-    <!-- СТР 2 -->
     <div id="page2" class="page">
         <div class="container">
             <div class="section-title">Пассивные навыки</div>
@@ -110,7 +175,6 @@
         </div>
     </div>
 
-    <!-- СТР 3 -->
     <div id="page3" class="page">
         <div class="container">
             <div class="section-title">Активные навыки</div>
@@ -126,7 +190,6 @@
         </div>
     </div>
 
-    <!-- СТР 4 -->
     <div id="page4" class="page">
         <div class="container">
             <div class="section-title">Справочник способностей</div>
@@ -185,8 +248,11 @@ const skillsByCat = {
     ]
 };
 
-// Все активные навыки в один массив для селектов
 const allActives = [...skillsByCat.atk, ...skillsByCat.buf, ...skillsByCat.deb];
+
+// Переменные для хранения настроек положения фотографии
+let photoSettings = { x: 0, y: 0, scale: null };
+let isPhotoUnlocked = false;
 
 let counters = {1:10, 2:10, 3:10, 4:10, 5:10, 6:10}, lockedCounters = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0}, level = 1, lvlPoints = 0, basePoints = 5, isLocked = false, currentTab = 1;
 
@@ -199,7 +265,6 @@ function switchTab(n) {
 }
 
 window.onload = () => {
-    // Заполнение селектов
     const fill = (id, list, text) => {
         let s = document.getElementById(id);
         s.innerHTML = `<option value="">${text}</option>` + list.map(x => `<option value="${x.n || x}">${x.n || x}</option>`).join('');
@@ -207,7 +272,6 @@ window.onload = () => {
     [1,2,3].forEach(i => fill('p_skill'+i, passiveList, "— ПАССИВНЫЙ —"));
     [1,2,3,4,5,6,7].forEach(i => fill('skill'+i, allActives, "— АКТИВНЫЙ —"));
 
-    // Генерация справки по категориям
     const info = document.getElementById('info-content');
     const cats = { atk: '⚔️ АТАКУЮЩИЕ', buf: '🛡️ БАФФЫ / ЗАЩИТА', deb: '🔮 ДЕБАФФЫ / КОНТРОЛЬ' };
     for (let key in cats) {
@@ -225,18 +289,26 @@ window.onload = () => {
         const d = JSON.parse(saved);
         Object.assign(counters, d.counters); Object.assign(lockedCounters, d.lockedCounters);
         level = d.level; lvlPoints = d.lvlPoints; basePoints = d.basePoints; isLocked = d.isLocked;
+        if(d.photoSettings) Object.assign(photoSettings, d.photoSettings); // Загрузка координат фото
         document.getElementById("nameInput").value = d.name || "";
         [1,2,3].forEach(i => document.getElementById('p_skill'+i).value = d.ps[i-1] || "");
         [1,2,3,4,5,6,7].forEach(i => document.getElementById('skill'+i).value = d.as[i-1] || "");
     }
     const img = localStorage.getItem('dnd_v17_img');
-    if (img) document.getElementById("preview").src = img;
+    if (img) {
+        const imgEl = document.getElementById("preview");
+        imgEl.src = img;
+        imgEl.onload = () => {
+            if (photoSettings.scale === null || isNaN(photoSettings.scale)) resetPhotoPosition();
+            applyPhotoTransforms();
+        };
+    }
     render();
 };
 
 function saveData() {
     localStorage.setItem('dnd_v17_data', JSON.stringify({
-        counters, lockedCounters, level, lvlPoints, basePoints, isLocked,
+        counters, lockedCounters, level, lvlPoints, basePoints, isLocked, photoSettings,
         name: document.getElementById("nameInput").value,
         ps: [1,2,3].map(i => document.getElementById('p_skill'+i).value),
         as: [1,2,3,4,5,6,7].map(i => document.getElementById('skill'+i).value)
@@ -288,13 +360,173 @@ function handleSecondary(id, v) {
 }
 
 function lockBase() { if (basePoints === 0 && confirm("Закрепить базу?")) { isLocked = true; lockedCounters = {...counters}; render(); } }
-function loadImage(e) { let r = new FileReader(); r.onload = () => { document.getElementById("preview").src = r.result; localStorage.setItem('dnd_v17_img', r.result); }; r.readAsDataURL(e.target.files[0]); }
+
 function resetAll() { if (confirm("Сбросить всё?")) { localStorage.clear(); location.reload(); } }
 function downloadSheet() {
     html2canvas(document.getElementById('capture-area'), { backgroundColor: "#121212", scale: 2 }).then(canvas => {
         const link = document.createElement('a'); link.download = 'character_sheet.png'; link.href = canvas.toDataURL(); link.click();
     });
 }
+
+/* ========================================================== */
+/* ===== СИСТЕМА УПРАВЛЕНИЯ ФОТО,МАСШТАБИРОВАНИЯ И ГРАНИЦ ===== */
+/* ========================================================== */
+const maskEl = document.getElementById("photo-mask");
+const imgEl = document.getElementById("preview");
+
+let isDragging = false, startX, startY, imgStartX, imgStartY;
+let startDist = 0, startScale = 1;
+
+function togglePhotoLock() {
+    isPhotoUnlocked = !isPhotoUnlocked;
+    const btn = document.getElementById("lockPhotoBtn");
+    const icon = document.getElementById("lockPhotoIcon");
+    const text = document.getElementById("lockPhotoText");
+    
+    if(isPhotoUnlocked) {
+        btn.className = "lock-photo-btn unlocked";
+        icon.textContent = "🔓"; text.textContent = "Настройка фото...";
+        maskEl.classList.add("edit-mode");
+    } else {
+        btn.className = "lock-photo-btn";
+        icon.textContent = "🔒"; text.textContent = "Фото закреплено";
+        maskEl.classList.remove("edit-mode");
+        saveData();
+    }
+}
+
+function loadImage(e) { 
+    let r = new FileReader(); 
+    r.onload = () => { 
+        imgEl.src = r.result; 
+        localStorage.setItem('dnd_v17_img', r.result); 
+        imgEl.onload = () => {
+            resetPhotoPosition();
+            applyPhotoTransforms();
+            if(!isPhotoUnlocked) togglePhotoLock(); // Сразу открываем для настройки при добавлении
+        };
+    }; 
+    r.readAsDataURL(e.target.files[0]); 
+}
+
+function resetPhotoPosition() {
+    const size = maskEl.offsetWidth;
+    const wr = size / imgEl.naturalWidth;
+    const hr = size / imgEl.naturalHeight;
+    photoSettings.scale = Math.max(wr, hr);
+    photoSettings.x = (size - imgEl.naturalWidth * photoSettings.scale) / 2;
+    photoSettings.y = (size - imgEl.naturalHeight * photoSettings.scale) / 2;
+}
+
+function applyPhotoTransforms() {
+    imgEl.style.transform = `translate3d(${photoSettings.x}px, ${photoSettings.y}px, 0) scale(${photoSettings.scale})`;
+}
+
+function constrainPhoto() {
+    const size = maskEl.offsetWidth;
+    const minScale = Math.max(size / imgEl.naturalWidth, size / imgEl.naturalHeight);
+    
+    if (photoSettings.scale < minScale) photoSettings.scale = minScale;
+    if (photoSettings.scale > 5) photoSettings.scale = 5;
+
+    const w = imgEl.naturalWidth * photoSettings.scale;
+    const h = imgEl.naturalHeight * photoSettings.scale;
+
+    if (photoSettings.x > 0) photoSettings.x = 0;
+    if (photoSettings.y > 0) photoSettings.y = 0;
+    if (photoSettings.x < size - w) photoSettings.x = size - w;
+    if (photoSettings.y < size - h) photoSettings.y = size - h;
+}
+
+function onDragStart(e) {
+    if (!isPhotoUnlocked) return;
+    
+    if (e.type === 'touchstart' && e.touches.length === 2) {
+        isDragging = false;
+        startDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+        startScale = photoSettings.scale;
+        imgStartX = photoSettings.x;
+        imgStartY = photoSettings.y;
+        return;
+    }
+
+    isDragging = true;
+    maskEl.classList.add('grabbing');
+    const pX = e.type.includes('touch') ? e.touches[0].pageX : e.pageX;
+    const pY = e.type.includes('touch') ? e.touches[0].pageY : e.pageY;
+    startX = pX; startY = pY;
+    imgStartX = photoSettings.x; imgStartY = photoSettings.y;
+}
+
+function onDragMove(e) {
+    if (!isPhotoUnlocked) return;
+
+    if (e.type === 'touchmove' && e.touches.length === 2) {
+        e.preventDefault();
+        const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+        const factor = dist / startDist;
+        
+        let oldScale = photoSettings.scale;
+        photoSettings.scale = startScale * factor;
+        
+        const midX = (e.touches[0].pageX + e.touches[1].pageX) / 2 - maskEl.getBoundingClientRect().left;
+        const midY = (e.touches[0].pageY + e.touches[1].pageY) / 2 - maskEl.getBoundingClientRect().top;
+        
+        photoSettings.x = midX - ((midX - imgStartX) / oldScale) * photoSettings.scale;
+        photoSettings.y = midY - ((midY - imgStartY) / oldScale) * photoSettings.scale;
+
+        constrainPhoto();
+        applyPhotoTransforms();
+        return;
+    }
+
+    if (!isDragging) return;
+    if (e.type === 'touchmove') e.preventDefault();
+
+    const pX = e.type.includes('touch') ? e.touches[0].pageX : e.pageX;
+    const pY = e.type.includes('touch') ? e.touches[0].pageY : e.pageY;
+    
+    photoSettings.x = imgStartX + (pX - startX);
+    photoSettings.y = imgStartY + (pY - startY);
+    
+    constrainPhoto();
+    applyPhotoTransforms();
+}
+
+function onDragEnd() {
+    isDragging = false;
+    maskEl.classList.remove('grabbing');
+    if(isPhotoUnlocked) saveData();
+}
+
+maskEl.onmousedown = onDragStart;
+window.onmousemove = onDragMove;
+window.onmouseup = onDragEnd;
+
+maskEl.addEventListener('touchstart', onDragStart, {passive: false});
+window.addEventListener('touchmove', onDragMove, {passive: false});
+window.addEventListener('touchend', onDragEnd);
+
+maskEl.onwheel = e => {
+    if (!isPhotoUnlocked) return;
+    e.preventDefault();
+    const speed = 0.08;
+    const delta = e.deltaY > 0 ? (1 - speed) : (1 + speed);
+    
+    let oldScale = photoSettings.scale;
+    photoSettings.scale *= delta;
+
+    const rect = maskEl.getBoundingClientRect();
+    const cX = rect.width / 2;
+    const cY = rect.height / 2;
+
+    photoSettings.x = cX - ((cX - photoSettings.x) / oldScale) * photoSettings.scale;
+    photoSettings.y = cY - ((cY - photoSettings.y) / oldScale) * photoSettings.scale;
+
+    constrainPhoto();
+    applyPhotoTransforms();
+    saveData();
+};
 </script>
 </body>
 </html>
