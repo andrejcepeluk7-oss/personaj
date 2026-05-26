@@ -7,7 +7,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   body {
-    /* УСТАНОВЛЕН ШРИФТ COMIC SANS */
     font-family: "Comic Sans MS", "Comic Sans", cursive; 
     background-color: #121212;
     color: #ffffff;
@@ -18,11 +17,41 @@
     touch-action: pan-y;
   }
 
+  .tabs-menu {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    max-width: 340px;
+    margin: 0 auto 15px;
+  }
+  .tab-btn {
+    font-family: inherit;
+    flex: 1;
+    height: 40px;
+    background: #1a1a1a;
+    color: #888;
+    border: 1px solid #333;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .tab-btn.active {
+    background: #333;
+    color: #fff;
+    border-color: #555;
+  }
+
   #capture-area {
     background-color: #121212;
     padding: 10px;
     border-radius: 15px;
+    max-width: 340px;
+    margin: 0 auto;
   }
+
+  .page { display: none; }
+  .page.active { display: block; }
 
   #preview {
     width: 140px; height: 140px;
@@ -31,29 +60,21 @@
     margin: 0 auto 15px; border: 2px solid #333;
   }
 
-  .name-row {
-    display: flex; align-items: center; justify-content: center;
-    gap: 10px; margin-bottom: 15px; max-width: 340px; margin: 0 auto 15px;
-  }
-  
+  .name-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
   #nameInput {
-    font-family: inherit;
-    flex-grow: 1; height: 40px; border: 1px solid #333; border-radius: 8px;
-    background: transparent; color: white; text-align: center;
-    font-size: 16px; outline: none;
+    font-family: inherit; flex-grow: 1; height: 40px; border: 1px solid #333; border-radius: 8px;
+    background: transparent; color: white; text-align: center; font-size: 16px; outline: none;
   }
 
   .icon-btn {
-    width: 44px; height: 44px; border: 1px solid #333;
-    border-radius: 8px; background: #1a1a1a; color: white;
-    font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border: 1px solid #333; border-radius: 8px;
+    background: #1a1a1a; color: white; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
   }
 
   .stats-header {
-    display: flex; justify-content: space-between;
-    background: #1a1a1a; padding: 12px; border-radius: 12px;
-    margin-bottom: 15px; border: 1px solid #333;
-    max-width: 340px; margin: 0 auto 15px;
+    display: flex; justify-content: space-between; background: #1a1a1a;
+    padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333;
   }
   .stat-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
   .stat-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 4px; }
@@ -62,7 +83,7 @@
   .lvl-btns { display: flex; gap: 8px; margin-top: 6px; }
   .lvl-btns button { width: 32px; height: 28px; background: #222; border: 1px solid #444; border-radius: 4px; color: white; font-family: inherit; }
 
-  .container { width: 100%; max-width: 340px; margin: 0 auto; }
+  .container { width: 100%; }
   .row { 
     display: flex; align-items: center; justify-content: space-between; 
     margin: 8px 0; background: #1a1a1a; padding: 8px 12px; 
@@ -70,190 +91,151 @@
   }
   .label { width: 110px; text-align: left; font-size: 14px; }
   .value { width: 30px; font-size: 18px; font-weight: bold; }
-  
-  .row button {
-    width: 42px; height: 38px; font-size: 20px;
-    border: 1px solid #333; border-radius: 8px; background-color: #222; color: white;
-    font-family: inherit;
-  }
+  .row button { width: 42px; height: 38px; font-size: 20px; border: 1px solid #333; border-radius: 8px; background-color: #222; color: white; font-family: inherit; }
 
-  .skills-container {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  /* Стили Списков Навыков */
+  .section-title { text-align: left; font-size: 12px; color: #888; text-transform: uppercase; margin: 15px 0 8px 5px; letter-spacing: 1px; border-left: 3px solid #444; padding-left: 6px; }
+  .skills-list { display: flex; flex-direction: column; gap: 8px; }
+  .skill-card {
+    background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 8px 12px; text-align: left;
   }
+  .skill-card.locked { opacity: 0.35; background: #141414; border-style: dashed; }
+  .skill-info { display: flex; justify-content: space-between; font-size: 10px; color: #666; margin-bottom: 4px; text-transform: uppercase; }
   .skill-select {
-    font-family: inherit;
-    width: 100%;
-    height: 40px;
-    background: #1a1a1a;
-    color: #fff;
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 0 10px;
-    font-size: 13px;
-    outline: none;
+    font-family: inherit; width: 100%; height: 36px; background: #222; color: #fff;
+    border: 1px solid #444; border-radius: 6px; padding: 0 5px; font-size: 12px; outline: none;
   }
+  .skill-select:disabled { color: #444; background: #111; border-color: #222; }
 
   #fixBtn, #downloadBtn {
-    font-family: inherit;
-    width: 100%; height: 44px; font-size: 14px; border-radius: 10px; 
+    font-family: inherit; width: 100%; height: 44px; font-size: 14px; border-radius: 10px; 
     margin-top: 10px; font-weight: bold; border: none; text-transform: uppercase; cursor: pointer;
   }
-
   #fixBtn { background-color: #f0f0f0; color: #000; }
-  #downloadBtn { background-color: #333; color: #fff; border: 1px solid #444; margin-top: 20px; }
-
+  #downloadBtn { background-color: #333; color: #fff; border: 1px solid #444; margin-top: 15px; }
   .locked-notice { font-size: 11px; color: #666; margin-top: 10px; }
 </style>
 </head>
 <body>
 
+<div class="tabs-menu">
+    <button id="tab1" class="tab-btn active" onclick="switchTab(1)">Персонаж</button>
+    <button id="tab2" class="tab-btn" onclick="switchTab(2)">Навыки</button>
+</div>
+
 <div id="capture-area">
-    <div class="avatar-box">
-      <img id="preview" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
-    </div>
-
-    <div class="name-row">
-      <button class="icon-btn" onclick="document.getElementById('fileInput').click()">📷</button>
-      <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)" style="display:none">
-      
-      <input type="text" id="nameInput" placeholder="Имя героя" oninput="saveData()">
-      
-      <button class="icon-btn" onclick="resetAll()">🗑️</button>
-    </div>
-
-    <div class="container">
-        <div class="stats-header">
-            <div class="stat-item">
-                <span class="stat-label">LVL</span>
-                <div class="stat-val" id="lvlDisplay">1</div>
-                <div class="lvl-btns">
-                    <button onclick="changeLevel(-1)">-</button>
-                    <button onclick="changeLevel(1)">+</button>
+    <div id="page1" class="page active">
+        <img id="preview" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
+        <div class="name-row">
+            <button class="icon-btn" onclick="document.getElementById('fileInput').click()">📷</button>
+            <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)" style="display:none">
+            <input type="text" id="nameInput" placeholder="Имя героя" oninput="saveData()">
+            <button class="icon-btn" onclick="resetAll()">🗑️</button>
+        </div>
+        <div class="container">
+            <div class="stats-header">
+                <div class="stat-item">
+                    <span class="stat-label">LVL</span>
+                    <div class="stat-val" id="lvlDisplay">1</div>
+                    <div class="lvl-btns"><button onclick="changeLevel(-1)">-</button><button onclick="changeLevel(1)">+</button></div>
                 </div>
+                <div class="stat-item"><span class="stat-label">Points</span><div class="stat-val" id="lvlPointsDisplay">0</div></div>
+                <div id="basePointsSection" class="stat-item"><span class="stat-label">Base</span><div class="stat-val" id="basePointsDisplay">5</div></div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Points</span>
-                <div class="stat-val" id="lvlPointsDisplay">0</div>
-            </div>
-            <div id="basePointsSection" class="stat-item">
-                <span class="stat-label">Base</span>
-                <div class="stat-val" id="basePointsDisplay">5</div>
+            <div id="stats-list">
+                <div class="row"><div class="label">Сила</div><button onclick="handleStat(1, 2, -1)">-</button><div class="value" id="c1">10</div><button onclick="handleStat(1, 2, 1)">+</button></div>
+                <div class="row"><div class="label">Интеллект</div><button onclick="handleStat(2, 1, -1)">-</button><div class="value" id="c2">10</div><button onclick="handleStat(2, 1, 1)">+</button></div>
+                <div class="row"><div class="label">Телосложение</div><button onclick="handleStat(3, 4, -1)">-</button><div class="value" id="c3">10</div><button onclick="handleStat(3, 4, 1)">+</button></div>
+                <div class="row"><div class="label">Мудрость</div><button onclick="handleStat(4, 3, -1)">-</button><div class="value" id="c4">10</div><button onclick="handleStat(4, 3, 1)">+</button></div>
+                <div class="row"><div class="label">Ловкость</div><button onclick="handleSecondary(5, -1)">-</button><div class="value" id="c5">10</div><button onclick="handleSecondary(5, 1)">+</button></div>
+                <div class="row"><div class="label">Харизма</div><button onclick="handleSecondary(6, -1)">-</button><div class="value" id="c6">10</div><button onclick="handleSecondary(6, 1)">+</button></div>
             </div>
         </div>
+    </div>
 
-        <div id="stats-list">
-            <div class="row"><div class="label">Сила</div><button onclick="handleStat(1, 2, -1)">-</button><div class="value" id="c1">10</div><button onclick="handleStat(1, 2, 1)">+</button></div>
-            <div class="row"><div class="label">Интеллект</div><button onclick="handleStat(2, 1, -1)">-</button><div class="value" id="c2">10</div><button onclick="handleStat(2, 1, 1)">+</button></div>
-            <div class="row"><div class="label">Телосложение</div><button onclick="handleStat(3, 4, -1)">-</button><div class="value" id="c3">10</div><button onclick="handleStat(3, 4, 1)">+</button></div>
-            <div class="row"><div class="label">Мудрость</div><button onclick="handleStat(4, 3, -1)">-</button><div class="value" id="c4">10</div><button onclick="handleStat(4, 3, 1)">+</button></div>
-            <div class="row"><div class="label">Ловкость</div><button onclick="handleSecondary(5, -1)">-</button><div class="value" id="c5">10</div><button onclick="handleSecondary(5, 1)">+</button></div>
-            <div class="row"><div class="label">Харизма</div><button onclick="handleSecondary(6, -1)">-</button><div class="value" id="c6">10</div><button onclick="handleSecondary(6, 1)">+</button></div>
-        </div>
+    <div id="page2" class="page">
+        <div class="container">
+            <div class="section-title">Пассивные навыки</div>
+            <div class="skills-list">
+                <div class="skill-card"><div class="skill-info"><span>Пассивный 1</span><span>Всегда доступен</span></div><select id="p_skill1" class="skill-select" onchange="saveData()"></select></div>
+                <div class="skill-card"><div class="skill-info"><span>Пассивный 2</span><span>Всегда доступен</span></div><select id="p_skill2" class="skill-select" onchange="saveData()"></select></div>
+                <div class="skill-card"><div class="skill-info"><span>Пассивный 3</span><span>Всегда доступен</span></div><select id="p_skill3" class="skill-select" onchange="saveData()"></select></div>
+            </div>
 
-        <div class="skills-container">
-            <select id="skill1" class="skill-select" onchange="saveData()"><option value="">Навык 1...</option></select>
-            <select id="skill2" class="skill-select" onchange="saveData()"><option value="">Навык 2...</option></select>
-            <select id="skill3" class="skill-select" onchange="saveData()"><option value="">Навык 3...</option></select>
+            <div class="section-title">Активные навыки</div>
+            <div class="skills-list">
+                <div class="skill-card" id="slot1"><div class="skill-info"><span>Активный 1</span><span id="st1">Доступен</span></div><select id="skill1" class="skill-select" onchange="saveData()"></select></div>
+                <div class="skill-card" id="slot2"><div class="skill-info"><span>Активный 2</span><span id="st2">Доступен</span></div><select id="skill2" class="skill-select" onchange="saveData()"></select></div>
+                <div class="skill-card" id="slot3"><div class="skill-info"><span>Активный 3</span><span id="st3">Доступен</span></div><select id="skill3" class="skill-select" onchange="saveData()"></select></div>
+                
+                <div class="skill-card" id="slot4"><div class="skill-info"><span>Активный 4</span><span id="st4">2 LVL</span></div><select id="skill4" class="skill-select" onchange="saveData()"></select></div>
+                <div class="skill-card" id="slot5"><div class="skill-info"><span>Активный 5</span><span id="st5">4 LVL</span></div><select id="skill5" class="skill-select" onchange="saveData()"></select></div>
+                <div class="skill-card" id="slot6"><div class="skill-info"><span>Активный 6</span><span id="st6">6 LVL</span></div><select id="skill6" class="skill-select" onchange="saveData()"></select></div>
+                <div class="skill-card" id="slot7"><div class="skill-info"><span>Активный 7</span><span id="st7">8 LVL</span></div><select id="skill7" class="skill-select" onchange="saveData()"></select></div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="container">
+<div class="container" style="max-width:340px; margin: 0 auto;">
     <button id="fixBtn" onclick="lockBase()">Закрепить базу</button>
     <div id="statusNotice" class="locked-notice"></div>
-    <button id="downloadBtn" onclick="downloadSheet()">💾 Скачать карточку</button>
+    <button id="downloadBtn" onclick="downloadSheet()">💾 Сохранить PNG</button>
 </div>
 
 <script>
-const skillsData = [
-    "Акробатика — баланс и уклонение",
-    "Алхимия — зелья и яды",
-    "Анализ — поиск улик и изучение",
-    "Атлетика — сила и прыжки",
-    "Древковое — копья и алебарды",
-    "Мечи — техника ближнего боя",
-    "Ножи — кинжалы и клинки",
-    "Щиты — блокирование и защита",
-    "Внимательность — слух и детали",
-    "Выживание — охота и природа",
-    "Выступление — музыка и танцы",
-    "Древние языки — чтение мертвых языков",
-    "Запугивание — угрозы и давление",
-    "Знание языков — доп. языки",
-    "История — прошлое и войны",
-    "Каллиграфия — работа с бумагами",
-    "Кузнечное дело — ковка и ремонт",
-    "Кулинария — еда и ингредиенты",
-    "Ловкость рук — кражи и фокусы",
-    "Медицина — помощь и раны",
-    "Морское дело — корабли и навигация",
-    "Обман — ложь и притворство",
-    "Природа — животные и растения",
-    "Проницательность — чтение эмоций",
-    "Религия — боги и нежить",
-    "Рунное дело — символы и печати",
-    "Рыбалка — ловля и вода",
-    "Скрытность — бесшумность",
-    "Стрельба — луки и точность",
-    "Торговля — сделки и оценка",
-    "Травничество — лечебные травы",
-    "Убеждение — дипломатия",
-    "Уход за животными — приручение"
+const passiveList = ["Акробатика","Алхимия","Анализ","Атлетика","Древковое","Мечи","Ножи","Щиты","Внимательность","Выживание","Выступление","Древние языки","Запугивание","История","Каллиграфия","Кузнечное дело","Кулинария","Ловкость рук","Медицина","Морское дело","Обман","Природа","Проницательность","Религия","Рунное дело","Рыбалка","Скрытность","Стрельба","Торговля","Травничество","Убеждение","Уход за животными"];
+const activeList = [
+    "СИЛ+ЛОВ: Сокрушающее парирование (16/12)","СИЛ+ЛОВ: Проламывающая контратака (13/12)","СИЛ+ЛОВ: Скользящий выпад (10/15)","СИЛ+ЛОВ: Танец уклонений (7/15)","СИЛ+ЛОВ: Равновесный стиль (11/11)",
+    "СИЛ+ИНТ: Рунное усиление (17/5)","СИЛ+ИНТ: Магический клинок (11/11)","СИЛ+ИНТ: Эфирное вооружение (6/16)",
+    "СИЛ+ТЕЛ: Бешеный таран (15/15)","СИЛ+ТЕЛ: Продавливающий напор (13/9)","СИЛ+ТЕЛ: Железная стойка (10/12)","СИЛ+ТЕЛ: Несдвигаемое тело (8/15)","СИЛ+ТЕЛ: Устойчивая опора (11/11)",
+    "СИЛ+ХАР: Жестокое давление (16/10)","СИЛ+ХАР: Подавляющее присутствие (13/12)","СИЛ+ХАР: Давление голосом (10/15)","СИЛ+ХАР: Аура доминирования (12/16)",
+    "ЛОВ+ИНТ: Резкое ускорение (15/7)","ЛОВ+ИНТ: Магический рывок (13/10)","ЛОВ+ИНТ: Магическое уклонение (10/16)",
+    "ЛОВ+ТЕЛ: Гибкая стойка (13/10)","ЛОВ+ТЕЛ: Баланс движения (11/11)","ЛОВ+ТЕЛ: Текучее тело (16/11)",
+    "ЛОВ+ХАР: Обманное движение (13/12)","ЛОВ+ХАР: Контроль внимания (11/12)","ЛОВ+ХАР: Гипнотическая грация (10/17)",
+    "ХАР+ИНТ: Подчиняющий голос (13/18)","ХАР+ИНТ: Магическое убеждение (11/11)","ХАР+ИНТ: Магическое внушение (15/14)",
+    "ХАР+ТЕЛ: Агрессивное нависание (16/16)","ХАР+ТЕЛ: Давящая аура (13/10)","ХАР+ТЕЛ: Воля хищника (14/16)"
 ];
 
-let counters = { 1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10 };
-let lockedCounters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-let level = 1;
-let lvlPoints = 0;
-let basePoints = 5;
-let isLocked = false;
+let counters = {1:10, 2:10, 3:10, 4:10, 5:10, 6:10}, lockedCounters = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0}, level = 1, lvlPoints = 0, basePoints = 5, isLocked = false, currentTab = 1;
 
-window.onload = function() {
-    [1, 2, 3].forEach(num => {
-        const sel = document.getElementById('skill' + num);
-        skillsData.forEach(s => {
-            let opt = document.createElement('option');
-            opt.value = s;
-            opt.textContent = s;
-            sel.appendChild(opt);
-        });
-    });
+function switchTab(n) {
+    currentTab = n;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page' + n).classList.add('active');
+    document.getElementById('tab' + n).classList.add('active');
+}
 
-    const saved = localStorage.getItem('dnd_v12_data');
+window.onload = () => {
+    const fill = (id, list, text) => {
+        let s = document.getElementById(id);
+        s.innerHTML = `<option value="">${text}</option>` + list.map(x => `<option value="${x}">${x}</option>`).join('');
+    };
+    [1,2,3].forEach(i => fill('p_skill'+i, passiveList, "Выберите пассивный..."));
+    [1,2,3,4,5,6,7].forEach(i => fill('skill'+i, activeList, "Выберите активный..."));
+
+    const saved = localStorage.getItem('dnd_v14_data');
     if (saved) {
         const d = JSON.parse(saved);
-        counters = d.counters;
-        lockedCounters = d.lockedCounters || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-        level = d.level;
-        lvlPoints = d.lvlPoints;
-        basePoints = d.basePoints;
-        isLocked = d.isLocked;
+        Object.assign(window, d);
         document.getElementById("nameInput").value = d.name || "";
-        if(d.skills) {
-            document.getElementById('skill1').value = d.skills[0] || "";
-            document.getElementById('skill2').value = d.skills[1] || "";
-            document.getElementById('skill3').value = d.skills[2] || "";
-        }
+        [1,2,3].forEach(i => document.getElementById('p_skill'+i).value = d.ps[i-1] || "");
+        [1,2,3,4,5,6,7].forEach(i => document.getElementById('skill'+i).value = d.as[i-1] || "");
     }
-    const savedImg = localStorage.getItem('dnd_v12_img');
-    if (savedImg) document.getElementById("preview").src = savedImg;
+    const img = localStorage.getItem('dnd_v14_img');
+    if (img) document.getElementById("preview").src = img;
     render();
 };
 
 function saveData() {
-    const data = { 
-        counters, lockedCounters, level, lvlPoints, basePoints, isLocked, 
+    const data = {
+        counters, lockedCounters, level, lvlPoints, basePoints, isLocked,
         name: document.getElementById("nameInput").value,
-        skills: [
-            document.getElementById('skill1').value,
-            document.getElementById('skill2').value,
-            document.getElementById('skill3').value
-        ]
+        ps: [1,2,3].map(i => document.getElementById('p_skill'+i).value),
+        as: [1,2,3,4,5,6,7].map(i => document.getElementById('skill'+i).value)
     };
-    localStorage.setItem('dnd_v12_data', JSON.stringify(data));
+    localStorage.setItem('dnd_v14_data', JSON.stringify(data));
 }
 
 function render() {
@@ -262,99 +244,67 @@ function render() {
     document.getElementById("lvlPointsDisplay").textContent = lvlPoints;
     document.getElementById("basePointsDisplay").textContent = basePoints;
 
+    // Сверхточная проверка уровней для каждого из 7 активных слотов:
+    // Слоты 1, 2, 3: Доступны с 1 уровня (всегда)
+    // Слот 4: со 2 уровня, Слот 5: с 4 уровня, Слот 6: с 6 уровня, Слот 7: с 8 уровня
+    const requiredLevels = [1, 1, 1, 2, 4, 6, 8];
+
+    [1,2,3,4,5,6,7].forEach(i => {
+        let req = requiredLevels[i-1];
+        let card = document.getElementById('slot'+i);
+        let sel = document.getElementById('skill'+i);
+        let info = document.getElementById('st'+i);
+        
+        if(level >= req) {
+            card.classList.remove('locked'); sel.disabled = false; info.textContent = "Доступен"; info.style.color = "#666";
+        } else {
+            card.classList.add('locked'); sel.disabled = true; info.textContent = req + " LVL"; info.style.color = "#ae3b3b"; sel.value = "";
+        }
+    });
+
     if (isLocked) {
         document.getElementById("fixBtn").style.display = "none";
         document.getElementById("basePointsSection").style.visibility = "hidden";
         document.getElementById("statusNotice").textContent = "База закреплена";
     } else {
-        document.getElementById("statusNotice").textContent = "Этап: Распределение базы";
+        document.getElementById("statusNotice").textContent = "Распределение базы";
     }
     saveData();
 }
 
-function lockBase() {
-    if (basePoints > 0) return alert("Распределите базовые очки!");
-    if (confirm("Закрепить базу?")) {
-        isLocked = true;
-        lockedCounters = { ...counters };
-        render();
-    }
+function changeLevel(v) {
+    let nl = level + v;
+    if (nl < 1 || nl > 20) return;
+    let diff = Math.floor(nl/2) - Math.floor(level/2);
+    if (lvlPoints + diff < 0) return;
+    level = nl; lvlPoints += diff; render();
 }
 
-function changeLevel(val) {
-    let newLvl = level + val;
-    if (newLvl < 1 || newLvl > 20) return;
-    let oldB = Math.floor(level / 2);
-    let newB = Math.floor(newLvl / 2);
-    let diff = newB - oldB;
-    if (lvlPoints + diff < 0) return alert("Недостаточно очков!");
-    level = newLvl;
-    lvlPoints += diff;
-    render();
-}
-
-function handleStat(id, targetId, val) {
-    if (val === 1) {
+function handleStat(id, tId, v) {
+    if (v === 1) {
         if (lvlPoints > 0) { lvlPoints--; counters[id]++; } 
-        else if (!isLocked && counters[targetId] > 0) { counters[id]++; counters[targetId]--; }
+        else if (!isLocked && counters[tId] > 0) { counters[id]++; counters[tId]--; }
     } else {
-        if (isLocked) {
-            if (counters[id] > lockedCounters[id]) { counters[id]--; lvlPoints++; }
-        } else {
-            if (counters[id] <= 0) return;
-            if (counters[targetId] < 10) { counters[id]--; counters[targetId]++; }
-            else { counters[id]--; lvlPoints++; }
-        }
+        if (isLocked) { if (counters[id] > lockedCounters[id]) { counters[id]--; lvlPoints++; } }
+        else { if (counters[id] <= 0) return; if (counters[tId] < 10) { counters[id]--; counters[tId]++; } else { counters[id]--; lvlPoints++; } }
     }
     render();
 }
 
-function handleSecondary(id, val) {
-    if (val === 1) {
-        if (lvlPoints > 0) { lvlPoints--; counters[id]++; }
-        else if (!isLocked && basePoints > 0) { basePoints--; counters[id]++; }
-    } else {
-        if (isLocked) {
-            if (counters[id] > lockedCounters[id]) { counters[id]--; lvlPoints++; }
-        } else {
-            if (counters[id] <= 0) return;
-            counters[id]--;
-            if (basePoints < 5) basePoints++;
-            else lvlPoints++;
-        }
-    }
+function handleSecondary(id, v) {
+    if (v === 1) { if (lvlPoints > 0) { lvlPoints--; counters[id]++; } else if (!isLocked && basePoints > 0) { basePoints--; counters[id]++; } }
+    else { if (isLocked) { if (counters[id] > lockedCounters[id]) { counters[id]--; lvlPoints++; } }
+    else { if (counters[id] <= 0) return; counters[id]--; if (basePoints < 5) basePoints++; else lvlPoints++; } }
     render();
 }
 
-function loadImage(event) {
-    let reader = new FileReader();
-    reader.onload = function() {
-        const imgData = reader.result;
-        document.getElementById("preview").src = imgData;
-        localStorage.setItem('dnd_v12_img', imgData);
-    };
-    if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
-}
-
-function resetAll() {
-    if (confirm("Полный сброс персонажа?")) { 
-        localStorage.removeItem('dnd_v12_data');
-        localStorage.removeItem('dnd_v12_img');
-        location.reload(); 
-    }
-}
-
+function lockBase() { if (basePoints === 0 && confirm("Закрепить базу?")) { isLocked = true; lockedCounters = {...counters}; render(); } }
+function loadImage(e) { let r = new FileReader(); r.onload = () => { document.getElementById("preview").src = r.result; localStorage.setItem('dnd_v14_img', r.result); }; r.readAsDataURL(e.target.files[0]); }
+function resetAll() { if (confirm("Сбросить всё?")) { localStorage.clear(); location.reload(); } }
 function downloadSheet() {
-    const area = document.getElementById('capture-area');
-    html2canvas(area, { 
-        backgroundColor: "#121212",
-        useCORS: true,
-        scale: 2 
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'character-sheet.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+    const filename = currentTab === 1 ? 'character.png' : 'skills.png';
+    html2canvas(document.getElementById('capture-area'), { backgroundColor: "#121212", scale: 2 }).then(canvas => {
+        const link = document.createElement('a'); link.download = filename; link.href = canvas.toDataURL(); link.click();
     });
 }
 </script>
